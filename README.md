@@ -14,3 +14,7 @@ very early stage cli slideshows
 - handle sizing issues
 - support code highlight
 - support for theming
+
+## demo
+
+[image qrcode slide](/image/demo.png)
