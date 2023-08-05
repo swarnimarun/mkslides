@@ -17,4 +17,4 @@ very early stage cli slideshows
 
 ## demo
 
-[image qrcode slide](/image/demo.png)
+![image qrcode slide](/image/demo.png)
