@@ -51,11 +51,17 @@ impl SlideItem {
                 let lines = src.lines().map(|x| x.len());
                 let max_len = lines.clone().max().unwrap_or(0);
                 let lines = lines.count();
+                let widget = ratatui::widgets::Paragraph::new(src.as_str())
+                    .wrap(Wrap { trim: true })
+                    .block(b);
+                let max_width = 80;
+                let height = (max_len / max_width) + 2;
+                let width = if height == 1 { max_len } else { max_width };
                 frame.render_widget(
-                    ratatui::widgets::Paragraph::new(src.as_str()).block(b),
+                    widget,
                     Rect {
-                        width: max_len as u16 + 5,
-                        height: lines as u16,
+                        width: width as u16,
+                        height: height as u16,
                         ..rect
                     },
                 );
@@ -80,7 +86,6 @@ impl SlideItem {
                 lines as u16 + 2 + rect.y
             }
             SlideItem::Code(src) => {
-                // println!("{src:#?}");
                 let text = ratatui::text::Text::raw(src.as_str());
                 let width = text.width();
                 let height = text.height();
@@ -99,8 +104,9 @@ impl SlideItem {
                 let qr = qrcode::QrCode::new(src)
                     .unwrap()
                     .render()
-                    .dark_color(' ')
-                    .light_color('█')
+                    .quiet_zone(false)
+                    .dark_color('█')
+                    .light_color(' ')
                     .build();
                 let qr = qr
                     .lines()
