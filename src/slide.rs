@@ -80,20 +80,20 @@ impl SlideItem {
                 lines as u16 + 2 + rect.y
             }
             SlideItem::Code(src) => {
-                let lines = src.lines().map(|x| x.len());
-                let max_len = lines.clone().max().unwrap_or(0);
-                let lines = lines.count();
+                // println!("{src:#?}");
+                let text = ratatui::text::Text::raw(src.as_str());
+                let width = text.width();
+                let height = text.height();
                 frame.render_widget(
-                    ratatui::widgets::Paragraph::new(src.as_str())
-                        .alignment(Alignment::Left)
+                    ratatui::widgets::Paragraph::new(text)
                         .block(Block::new().borders(Borders::LEFT)),
                     Rect {
-                        width: max_len as u16 + 5,
-                        height: lines as u16,
+                        width: width as u16 + 2,
+                        height: height as u16,
                         ..rect
                     },
                 );
-                lines as u16 + 2 + rect.y
+                height as u16 + 2 + rect.y
             }
             SlideItem::QR(src) => {
                 let qr = qrcode::QrCode::new(src)
@@ -105,9 +105,7 @@ impl SlideItem {
                 let qr = qr
                     .lines()
                     .map(|x| x.chars().map(|c| [c, c]).flatten().collect::<String>())
-                    .join("\n")
-                    .trim()
-                    .to_string();
+                    .join("\n");
                 let lines = qr.lines().map(|x| x.chars().count());
                 let max_len = lines.clone().max().unwrap_or(0);
                 let lines = lines.count();
@@ -198,6 +196,28 @@ pub(crate) fn mkslides(path: impl AsRef<str>) -> Result<Slides> {
                             }
                         });
                         new = false;
+                    }
+                    NodeValue::Code(code) => {
+                        let src = code.literal.as_str();
+                        if new {
+                            items.push(SlideItem::Paragraph("".into()));
+                            new = false;
+                        }
+                        items.last_mut().map(|item| match item {
+                            SlideItem::Paragraph(psrc) | SlideItem::Heading(psrc) => {
+                                psrc.push('`');
+                                psrc.push_str(src);
+                                psrc.push('`');
+                            }
+                            SlideItem::Bullets(bullets) => {
+                                bullets.last_mut().map(|b| {
+                                    b.push('`');
+                                    b.push_str(src);
+                                    b.push('`');
+                                });
+                            }
+                            _ => {}
+                        });
                     }
                     NodeValue::Text(src) => {
                         // println!("{src}");
